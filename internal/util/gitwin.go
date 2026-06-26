@@ -83,6 +83,10 @@ func gitInstallDir() string {
 
 // installGitWindowsZip installs MinGit without winget/UAC.
 func installGitWindowsZip() bool {
+	if !AllowUnverifiedBootstrap() {
+		L.Err("MinGit release archives do not publish checksums; set " + AllowUnverifiedBootstrapEnv + "=1 to allow this bootstrap fallback.")
+		return false
+	}
 	url, ok := minGitDownloadURL()
 	if !ok {
 		L.Err("couldn't resolve a MinGit download from git-for-windows releases")

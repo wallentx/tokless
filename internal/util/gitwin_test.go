@@ -64,6 +64,13 @@ func TestGitInstallDir(t *testing.T) {
 	}
 }
 
+func TestInstallGitWindowsZipRequiresUnverifiedBootstrapOptIn(t *testing.T) {
+	t.Setenv(AllowUnverifiedBootstrapEnv, "")
+	if installGitWindowsZip() {
+		t.Fatal("MinGit zip bootstrap must be blocked without unverified-bootstrap opt-in")
+	}
+}
+
 func TestExtractZipFlat(t *testing.T) {
 	zipPath := filepath.Join(t.TempDir(), "test.zip")
 	destDir := filepath.Join(t.TempDir(), "dest")

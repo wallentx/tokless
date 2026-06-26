@@ -12,8 +12,10 @@ func TestManualRtkTarball(t *testing.T) {
 		t.Skip("manual: TOKLESS_MANUAL_RTK=1")
 	}
 	dest := t.TempDir()
-	url := "https://github.com/rtk-ai/rtk/releases/latest/download/rtk-x86_64-unknown-linux-musl.tar.gz"
-	if err := DownloadAndExtractTarGz(url, dest); err != nil {
+	asset := "rtk-x86_64-unknown-linux-musl.tar.gz"
+	url := "https://github.com/rtk-ai/rtk/releases/latest/download/" + asset
+	checksumsURL := "https://github.com/rtk-ai/rtk/releases/latest/download/checksums.txt"
+	if err := DownloadAndExtractTarGzVerified(url, checksumsURL, asset, dest); err != nil {
 		t.Fatalf("download/extract: %v", err)
 	}
 	bin := filepath.Join(dest, "rtk")

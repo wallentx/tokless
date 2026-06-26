@@ -53,6 +53,14 @@ func TestNodeUnixArtifact(t *testing.T) {
 	}
 }
 
+func TestNodeChecksumsURL(t *testing.T) {
+	got := nodeChecksumsURL("v22.11.0")
+	want := "https://nodejs.org/dist/v22.11.0/SHASUMS256.txt"
+	if got != want {
+		t.Fatalf("nodeChecksumsURL() = %q, want %q", got, want)
+	}
+}
+
 // newest-first index: non-LTS head + current LTS + old LTS.
 func realisticNodeIndex(t *testing.T) []nodeDistEntry {
 	t.Helper()

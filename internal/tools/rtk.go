@@ -12,6 +12,13 @@ import (
 	"github.com/HoangP8/tokless/internal/util"
 )
 
+const rtkChecksumsURL = "https://github.com/rtk-ai/rtk/releases/latest/download/checksums.txt"
+
+var (
+	rtkDownloadAndExtractTarGzVerified = util.DownloadAndExtractTarGzVerified
+	rtkDownloadToTempVerified          = util.DownloadToTempVerified
+)
+
 func rtkAssetForThisPlatform() string {
 	arch := "x86_64"
 	if runtime.GOARCH == "arm64" {
@@ -67,20 +74,24 @@ func rtkEnsureInstalled(opts core.RunOpts) (bool, error) {
 		opts.Reportf("ready", 1)
 		return true, nil
 	}
-	if !util.IsWin && util.Which("curl") != "" && util.Which("sh") != "" {
-		r := util.Run("sh", []string{"-c", "curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/master/install.sh | sh"}, util.RunOptions{})
-		if r.Code == 0 {
-			return true, nil
+	if util.AllowUnverifiedBootstrap() {
+		if !util.IsWin && util.Which("curl") != "" && util.Which("sh") != "" {
+			r := util.Run("sh", []string{"-c", "curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/master/install.sh | sh"}, util.RunOptions{})
+			if r.Code == 0 {
+				return true, nil
+			}
 		}
-	}
-	if util.Which("cargo") == "" {
-		util.InstallCargo()
-	}
-	if util.Which("cargo") != "" {
-		r := util.Run("cargo", []string{"install", "--git", "https://github.com/rtk-ai/rtk"}, util.RunOptions{})
-		if r.Code == 0 {
-			return true, nil
+		if util.Which("cargo") == "" {
+			util.InstallCargo()
 		}
+		if util.Which("cargo") != "" {
+			r := util.Run("cargo", []string{"install", "--git", "https://github.com/rtk-ai/rtk"}, util.RunOptions{})
+			if r.Code == 0 {
+				return true, nil
+			}
+		}
+	} else {
+		util.L.Warn("Skipping unverified RTK fallback installers; set " + util.AllowUnverifiedBootstrapEnv + "=1 to allow them after reviewing source.")
 	}
 	util.L.Err("Cannot install rtk on this platform. See https://github.com/rtk-ai/rtk for manual install.")
 	return false, nil
@@ -93,11 +104,15 @@ func rtkInstallPrebuilt(asset string, opts core.RunOpts) bool {
 	opts.Reportf("downloading binary", 0.3)
 	util.L.Sub("downloading " + asset + "…")
 	if util.IsWin {
+		zipPath, err := rtkDownloadToTempVerified(url, rtkChecksumsURL, asset)
+		if err != nil {
+			util.L.Err("rtk verified download failed: " + err.Error())
+			return false
+		}
+		defer os.Remove(zipPath)
 		ps := strings.Join([]string{
 			"$ErrorActionPreference='Stop'",
-			"Invoke-WebRequest -UseBasicParsing -Uri '" + url + "' -OutFile $env:TEMP\\rtk.zip",
-			"Expand-Archive -Force -Path $env:TEMP\\rtk.zip -DestinationPath '" + dest + "'",
-			"Remove-Item $env:TEMP\\rtk.zip",
+			"Expand-Archive -Force -Path '" + psSingleQuote(zipPath) + "' -DestinationPath '" + psSingleQuote(dest) + "'",
 		}, "; ")
 		if util.Run("powershell", []string{"-NoProfile", "-Command", ps}, util.RunOptions{}).Code != 0 {
 			return false
@@ -106,7 +121,8 @@ func rtkInstallPrebuilt(asset string, opts core.RunOpts) bool {
 		return true
 	}
 	opts.Reportf("extracting", 0.8)
-	if err := util.DownloadAndExtractTarGz(url, dest); err != nil {
+	if err := rtkDownloadAndExtractTarGzVerified(url, rtkChecksumsURL, asset, dest); err != nil {
+		util.L.Err("rtk verified download failed: " + err.Error())
 		return false
 	}
 	rtkBin := filepath.Join(dest, "rtk")
@@ -121,6 +137,10 @@ func rtkInstallPrebuilt(asset string, opts core.RunOpts) bool {
 	}
 	util.PrependProcessPath(dest)
 	return true
+}
+
+func psSingleQuote(s string) string {
+	return strings.ReplaceAll(s, "'", "''")
 }
 
 func rtkTestShim(agent string) {
@@ -340,30 +360,30 @@ func rtkWire(agent string) core.AgentFn {
 			util.L.Sub("[dry-run] would run: rtk " + strings.Join(args, " "))
 			return true, nil
 		}
-	if os.Getenv("TOKLESS_TEST") == "1" {
-		rtkTestShim(agent)
+		if os.Getenv("TOKLESS_TEST") == "1" {
+			rtkTestShim(agent)
+			return true, nil
+		}
+		rtkPath := util.ResolveRtkBin()
+		if rtkPath == "" {
+			util.L.Err("rtk binary not found on PATH or known install dirs")
+			return false, nil
+		}
+		r := util.Run(rtkPath, args, util.RunOptions{Capture: true})
+		if r.Code != 0 {
+			util.L.Debug("rtk init exited " + clip(r.Stderr))
+			return false, nil
+		}
+		if agent == "claude" {
+			overrideClaudeRtkHook()
+		}
+		v := util.Run(rtkPath, []string{"init", "--show"}, util.RunOptions{Capture: true})
+		if v.Code != 0 {
+			util.L.Err("rtk init --show failed: " + clip(v.Stderr))
+			return false, nil
+		}
 		return true, nil
 	}
-	rtkPath := util.ResolveRtkBin()
-	if rtkPath == "" {
-		util.L.Err("rtk binary not found on PATH or known install dirs")
-		return false, nil
-	}
-	r := util.Run(rtkPath, args, util.RunOptions{Capture: true})
-	if r.Code != 0 {
-		util.L.Debug("rtk init exited " + clip(r.Stderr))
-		return false, nil
-	}
-	if agent == "claude" {
-		overrideClaudeRtkHook()
-	}
-	v := util.Run(rtkPath, []string{"init", "--show"}, util.RunOptions{Capture: true})
-	if v.Code != 0 {
-		util.L.Err("rtk init --show failed: " + clip(v.Stderr))
-		return false, nil
-	}
-	return true, nil
-}
 }
 
 var rtk = &core.ToolManifest{
@@ -417,5 +437,3 @@ var rtk = &core.ToolManifest{
 		},
 	},
 }
-
-

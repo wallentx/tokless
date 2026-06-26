@@ -94,6 +94,10 @@ func downloadToTemp(url string) (string, error) {
 	return f.Name(), nil
 }
 
+func nodeChecksumsURL(v string) string {
+	return "https://nodejs.org/dist/" + v + "/SHASUMS256.txt"
+}
+
 // extractZipStripRoot unpacks zipPath into dest, dropping the archive's
 // single root directory (node-vX-win-x64/...) so binaries land in dest.
 func extractZipStripRoot(zipPath, dest string) error {
@@ -181,11 +185,12 @@ func installNodeWindowsZip() bool {
 		L.Err("no Node LTS zip available for win-" + arch)
 		return false
 	}
-	url := "https://nodejs.org/dist/" + v + "/node-" + v + "-win-" + arch + ".zip"
+	asset := "node-" + v + "-win-" + arch + ".zip"
+	url := "https://nodejs.org/dist/" + v + "/" + asset
 	L.Info("Downloading Node.js " + v + " from nodejs.org…")
-	tmp, err := downloadToTemp(url)
+	tmp, err := DownloadToTempVerified(url, nodeChecksumsURL(v), asset)
 	if err != nil {
-		L.Err("Node download failed: " + err.Error())
+		L.Err("Node verified download failed: " + err.Error())
 		return false
 	}
 	defer os.Remove(tmp)

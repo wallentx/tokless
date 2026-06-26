@@ -3,6 +3,7 @@ package util
 import (
 	"archive/tar"
 	"compress/gzip"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -12,7 +13,24 @@ import (
 
 // DownloadAndExtractTarGz fetches a tar.gz and unpacks it as-is into dest.
 func DownloadAndExtractTarGz(url, dest string) error {
+	if !AllowUnverifiedBootstrap() {
+		return fmt.Errorf("unverified bootstrap download blocked; set %s=1 to allow %s", AllowUnverifiedBootstrapEnv, url)
+	}
 	tmp, err := downloadToTemp(url)
+	if err != nil {
+		return err
+	}
+	defer os.Remove(tmp)
+	if err := os.MkdirAll(dest, 0o755); err != nil {
+		return err
+	}
+	return ExtractTarGzFlat(tmp, dest)
+}
+
+// DownloadAndExtractTarGzVerified fetches a tar.gz, verifies it, and unpacks it
+// as-is into dest.
+func DownloadAndExtractTarGzVerified(url, checksumURL, asset, dest string) error {
+	tmp, err := DownloadToTempVerified(url, checksumURL, asset)
 	if err != nil {
 		return err
 	}
@@ -70,10 +88,11 @@ func installNodeUnixTarball() bool {
 		return false
 	}
 	L.Info("Downloading Node.js " + v + " from nodejs.org…")
-	_, _, url := nodeUnixArtifact(runtime.GOOS, arch, v)
-	tarPath, err := downloadToTemp(url)
+	_, fileBase, url := nodeUnixArtifact(runtime.GOOS, arch, v)
+	asset := fileBase + ".tar.gz"
+	tarPath, err := DownloadToTempVerified(url, nodeChecksumsURL(v), asset)
 	if err != nil {
-		L.Err("Node download failed: " + err.Error())
+		L.Err("Node verified download failed: " + err.Error())
 		return false
 	}
 	defer os.Remove(tarPath)

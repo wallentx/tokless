@@ -43,9 +43,12 @@ func cavemanExec(bin string, args []string, opts core.RunOpts, dryHint string, e
 		return true, nil
 	}
 	if cavemanCommandNeedsMutableSourceOptIn(bin, args) && !cavemanMutableInstallersAllowed() {
-		err := errors.New("caveman installer uses mutable remote sources; review them first, then set " + allowMutableInstallersEnv + "=1 to run")
-		util.L.Err(err.Error())
-		return false, err
+		util.L.Warn("Caveman installer uses mutable remote sources (fetches code dynamically from GitHub).")
+		if !util.Confirm("This could execute unverified code. Proceed anyway?", false) {
+			err := errors.New("caveman installer uses mutable remote sources; review them first, then set " + allowMutableInstallersEnv + "=1 to run")
+			util.L.Err(err.Error())
+			return false, err
+		}
 	}
 	r := cavemanRun(bin, args, util.RunOptions{Capture: true, Env: env})
 	if r.Code != 0 {

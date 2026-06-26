@@ -147,38 +147,77 @@ func RunCodegraphIndexHook() int {
 }
 
 func resolveHookProjectDirFromInput(input []byte) string {
+	cwdProject := currentProjectDir()
 	if len(input) > 0 {
 		var req struct {
 			WorkspacePaths []string `json:"workspacePaths"`
 		}
 		if json.Unmarshal(input, &req) == nil && len(req.WorkspacePaths) > 0 {
-			return req.WorkspacePaths[0]
+			return trustedHookWorkspace(req.WorkspacePaths[0], cwdProject)
 		}
 	}
+	return cwdProject
+}
+
+func currentProjectDir() string {
 	dir, err := os.Getwd()
 	if err != nil {
 		return ""
 	}
-	return findProjectDir(dir)
+	project := findProjectDir(dir)
+	if !looksLikeProject(project) {
+		return ""
+	}
+	return project
+}
+
+func trustedHookWorkspace(path, cwdProject string) string {
+	if path == "" || cwdProject == "" {
+		return ""
+	}
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return ""
+	}
+	info, err := os.Stat(abs)
+	if err != nil || !info.IsDir() {
+		return ""
+	}
+	project := findProjectDir(abs)
+	if !looksLikeProject(project) {
+		return ""
+	}
+	if samePath(project, cwdProject) {
+		return project
+	}
+	return ""
+}
+
+func samePath(a, b string) bool {
+	aa, errA := filepath.EvalSymlinks(a)
+	bb, errB := filepath.EvalSymlinks(b)
+	if errA == nil {
+		a = aa
+	}
+	if errB == nil {
+		b = bb
+	}
+	ra, errA := filepath.Abs(a)
+	rb, errB := filepath.Abs(b)
+	if errA != nil || errB != nil {
+		return false
+	}
+	return filepath.Clean(ra) == filepath.Clean(rb)
 }
 
 func resolveCodegraphBin() string {
-	if p := util.Which("codegraph"); p != "" {
-		res := util.Run("codegraph", []string{"--version"}, util.RunOptions{Capture: true})
+	if p := util.FindTrustedBinary("codegraph", nil); p != "" {
+		res := util.Run(p, []string{"--version"}, util.RunOptions{Capture: true})
 		if res.Code == 0 && strings.Contains(res.Stdout, ".") {
 			return p
 		}
 	}
-	if matches, _ := filepath.Glob(filepath.Join(util.Home(), ".nvm", "versions", "node", "*", "bin")); len(matches) > 0 {
-		sep := ":"
-		if util.IsWin {
-			sep = ";"
-		}
-		cur := os.Getenv("PATH")
-		prefix := strings.Join(matches, sep)
-		os.Setenv("PATH", prefix+sep+cur)
-	}
-	return util.Which("codegraph")
+	return ""
 }
 func RunClaudeCodegraphSyncHook() int {
 	dir, err := os.Getwd()

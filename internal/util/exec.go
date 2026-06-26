@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -136,6 +137,97 @@ func WhichAny(bins []string) (string, string) {
 	return "", ""
 }
 
+func pathExts() []string {
+	if IsWin {
+		pe := os.Getenv("PATHEXT")
+		if pe == "" {
+			pe = ".EXE;.CMD;.BAT"
+		}
+		return strings.Split(pe, ";")
+	}
+	return []string{""}
+}
+
+func executableInDir(dir, bin string) string {
+	if dir == "" {
+		return ""
+	}
+	for _, ext := range pathExts() {
+		p := filepath.Join(dir, bin+ext)
+		if fi, err := os.Stat(p); err == nil && !fi.IsDir() {
+			return p
+		}
+	}
+	return ""
+}
+
+func npmPrefixFromEnv() string {
+	for _, k := range []string{"npm_config_prefix", "NPM_CONFIG_PREFIX"} {
+		if v := strings.TrimSpace(os.Getenv(k)); v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
+func trustedBinDirs(extraDirs []string) []string {
+	seen := map[string]bool{}
+	var dirs []string
+	add := func(dir string) {
+		if dir == "" {
+			return
+		}
+		clean := filepath.Clean(dir)
+		if !seen[clean] {
+			seen[clean] = true
+			dirs = append(dirs, clean)
+		}
+	}
+	for _, d := range extraDirs {
+		add(d)
+	}
+	home := Home()
+	if home != "" {
+		add(filepath.Join(home, ".local", "bin"))
+		add(filepath.Join(home, ".cargo", "bin"))
+		if matches, _ := filepath.Glob(filepath.Join(home, ".nvm", "versions", "node", "*", "bin")); len(matches) > 0 {
+			for _, d := range matches {
+				add(d)
+			}
+		}
+	}
+	if prefix := npmPrefixFromEnv(); prefix != "" {
+		add(npmGlobalBinDir(prefix, IsWin))
+	}
+	if IsWin {
+		if local := os.Getenv("LOCALAPPDATA"); local != "" {
+			add(filepath.Join(local, "Programs", "nodejs"))
+			add(filepath.Join(local, "tokless", "node"))
+			add(filepath.Join(local, "tokless", "git", "cmd"))
+			add(filepath.Join(local, "rtk", "bin"))
+		}
+		return dirs
+	}
+	for _, d := range []string{"/usr/local/bin", "/usr/bin", "/bin", "/opt/homebrew/bin"} {
+		add(d)
+	}
+	if prefix := os.Getenv("PREFIX"); prefix != "" && runtime.GOOS == "android" {
+		add(filepath.Join(prefix, "bin"))
+	}
+	return dirs
+}
+
+// FindTrustedBinary resolves bin only from expected install roots, not arbitrary
+// earlier PATH entries from a project or temp directory.
+func FindTrustedBinary(bin string, extraDirs []string) string {
+	for _, dir := range trustedBinDirs(extraDirs) {
+		if p := executableInDir(dir, bin); p != "" {
+			return p
+		}
+	}
+	return ""
+}
+
 // RtkInstallDirs returns well-known rtk install locations.
 func RtkInstallDirs() []string {
 	if IsWin {
@@ -155,25 +247,8 @@ func BinaryHealthy(p string) bool {
 
 // ResolveRtkBin finds a working rtk binary, surviving PATH drift.
 func ResolveRtkBin() string {
-	if p := Which("rtk"); p != "" {
-		if BinaryHealthy(p) {
-			return p
-		}
+	if p := FindTrustedBinary("rtk", RtkInstallDirs()); p != "" && BinaryHealthy(p) {
+		return p
 	}
-	sep := ":"
-	if IsWin {
-		sep = ";"
-	}
-	cur := os.Getenv("PATH")
-	prefix := ""
-	for _, d := range RtkInstallDirs() {
-		if d == "" {
-			continue
-		}
-		prefix += d + sep
-	}
-	if prefix != "" {
-		os.Setenv("PATH", prefix+cur)
-	}
-	return Which("rtk")
+	return ""
 }

@@ -5,12 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/HoangP8/tokless/internal/util"
 	"io"
 	"os"
 	"os/exec"
 	"strings"
 	"time"
-	"github.com/HoangP8/tokless/internal/util"
 )
 
 func rtkRewrite(cmdLine string) (string, bool) {
@@ -111,16 +111,15 @@ func RunRtkHookCodex() int {
 
 	type hookOut struct {
 		HookEventName      string            `json:"hookEventName"`
-		PermissionDecision string            `json:"permissionDecision"`
+		PermissionDecision string            `json:"permissionDecision,omitempty"`
 		UpdatedInput       map[string]string `json:"updatedInput"`
 	}
 	resp := struct {
 		HookSpecificOutput hookOut `json:"hookSpecificOutput"`
 	}{
 		HookSpecificOutput: hookOut{
-			HookEventName:      "PreToolUse",
-			PermissionDecision: "allow",
-			UpdatedInput:       map[string]string{"command": newCmd},
+			HookEventName: "PreToolUse",
+			UpdatedInput:  map[string]string{"command": newCmd},
 		},
 	}
 

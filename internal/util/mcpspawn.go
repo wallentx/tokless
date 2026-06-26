@@ -17,12 +17,14 @@ var pkgForBin = map[string]string{
 	"codegraph":    "@colbymchenry/codegraph",
 }
 
-// PickMcpSpawn prefers a real binary on PATH, else falls back to npx --no-install.
+// PickMcpSpawn prefers a binary from known install roots, else falls back to
+// trusted npx --no-install. It deliberately ignores arbitrary first-PATH hits so
+// a project or temp directory cannot become a persisted MCP command.
 func PickMcpSpawn(bin string, extraArgs ...string) McpSpawn {
 	if extraArgs == nil {
 		extraArgs = []string{}
 	}
-	if p := Which(bin); p != "" {
+	if p := FindTrustedBinary(bin, nil); p != "" {
 		return wrapCmdShim(McpSpawn{Command: spawnCommand(bin, p), Args: extraArgs})
 	}
 	pkg, ok := pkgForBin[bin]
@@ -31,7 +33,7 @@ func PickMcpSpawn(bin string, extraArgs ...string) McpSpawn {
 	}
 	args := append([]string{"--no-install", pkg}, extraArgs...)
 	cmd := "npx"
-	if p := Which("npx"); p != "" {
+	if p := FindTrustedBinary("npx", nil); p != "" {
 		cmd = spawnCommand("npx", p)
 	}
 	return wrapCmdShim(McpSpawn{Command: cmd, Args: args})

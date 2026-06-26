@@ -478,13 +478,17 @@ func upsertGeminiMdSection(open, close, content string) {
 		ci := strings.Index(existing, close)
 		if oi >= 0 && ci > oi {
 			ci += len(close)
-			for ci < len(existing) && existing[ci] == '\n' { ci++ }
+			for ci < len(existing) && existing[ci] == '\n' {
+				ci++
+			}
 			r := existing[:oi] + content + "\n" + existing[ci:]
 			_ = util.WriteFile(p, strings.TrimRight(r, "\n")+"\n")
 			return
 		}
 		existing = strings.TrimRight(existing, "\n")
-		if existing != "" { existing += "\n\n" }
+		if existing != "" {
+			existing += "\n\n"
+		}
 		_ = util.WriteFile(p, existing+content+"\n")
 		return
 	}
@@ -494,13 +498,21 @@ func upsertGeminiMdSection(open, close, content string) {
 func removeGeminiMdSection(open, close string) {
 	p := geminiMdPath()
 	existing, ok := util.ReadFileSafe(p)
-	if !ok { return }
+	if !ok {
+		return
+	}
 	oi := strings.Index(existing, open)
 	ci := strings.Index(existing, close)
-	if oi < 0 || ci <= oi { return }
+	if oi < 0 || ci <= oi {
+		return
+	}
 	ci += len(close)
-	for oi > 0 && existing[oi-1] == '\n' { oi-- }
-	for ci < len(existing) && existing[ci] == '\n' { ci++ }
+	for oi > 0 && existing[oi-1] == '\n' {
+		oi--
+	}
+	for ci < len(existing) && existing[ci] == '\n' {
+		ci++
+	}
 	c := existing[:oi] + existing[ci:]
 	c = strings.TrimRight(c, "\n")
 	if strings.TrimSpace(c) == "" {
@@ -581,16 +593,12 @@ func ctxUnwireAntigravity(opts core.RunOpts) (bool, error) {
 	_ = os.Remove(routingFilePath())
 	agents.RemoveAntigravityEntry("command(echo)")
 	removeGeminiMdSection("<!-- CONTEXT-MODE_START -->", "<!-- CONTEXT-MODE_END -->")
-	if cwd, err := os.Getwd(); err == nil {
-		dest := filepath.Join(cwd, "GEMINI.md")
-		if raw, ok := util.ReadFileSafe(dest); ok && strings.Contains(raw, ctxGeminiMarker) {
-			_ = os.Remove(dest)
-		}
-	}
 	return true, nil
 }
 
-func ctxVerifyAntigravity() bool { return agents.AntigravityMcpHas("context-mode") && agents.HasAntigravityContextModeHook() }
+func ctxVerifyAntigravity() bool {
+	return agents.AntigravityMcpHas("context-mode") && agents.HasAntigravityContextModeHook()
+}
 
 // --- verify ---
 

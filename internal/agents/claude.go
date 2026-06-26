@@ -70,6 +70,50 @@ func AllowClaudeMcpTool(toolID string) {
 	_ = util.WriteFile(p.Settings, util.StringifyJSON(cfg))
 }
 
+// RemoveClaudeMcpToolAllow drops the wildcard MCP allow entry tokless adds for a tool.
+func RemoveClaudeMcpToolAllow(toolID string) {
+	p := util.ClaudeCodePaths()
+	raw, ok := util.ReadFileSafe(p.Settings)
+	if !ok {
+		return
+	}
+	cfg := util.TryParseJsonc(raw)
+	if cfg == nil {
+		return
+	}
+	permsObj, ok := cfg.Get("permissions")
+	if !ok {
+		return
+	}
+	perms, ok := permsObj.(*util.OrderedMap)
+	if !ok {
+		return
+	}
+	allowObj, ok := perms.Get("allow")
+	if !ok {
+		return
+	}
+	allow, ok := allowObj.([]any)
+	if !ok {
+		return
+	}
+	entry := "mcp__" + toolID + "__.*"
+	out := make([]any, 0, len(allow))
+	removed := false
+	for _, x := range allow {
+		if s, ok := x.(string); ok && s == entry {
+			removed = true
+			continue
+		}
+		out = append(out, x)
+	}
+	if !removed {
+		return
+	}
+	perms.Set("allow", out)
+	_ = util.WriteFile(p.Settings, util.StringifyJSON(cfg))
+}
+
 // AllowClaudeBashPattern adds a Bash(specifier) entry to permissions.allow.
 func AllowClaudeBashPattern(pattern string) {
 	p := util.ClaudeCodePaths()
@@ -119,6 +163,7 @@ func RemoveClaudeMcp(toolID string) bool {
 	}
 	sm.Delete(toolID)
 	_ = util.WriteFile(p.GlobalJSON, util.StringifyJSON(cfg))
+	RemoveClaudeMcpToolAllow(toolID)
 	return true
 }
 

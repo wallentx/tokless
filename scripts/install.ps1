@@ -1,5 +1,6 @@
 # tokless installer for Windows (PowerShell 5.1+).
-#   irm https://raw.githubusercontent.com/HoangP8/tokless/main/scripts/install.ps1 | iex
+# Download this script from a trusted source, inspect it if needed, then run:
+#   powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1
 
 
 $ErrorActionPreference = "Stop"

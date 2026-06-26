@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # tokless installer for macOS / Linux.
-#   curl -fsSL https://raw.githubusercontent.com/HoangP8/tokless/main/scripts/install.sh | bash
+# Download this script from a trusted source, inspect it if needed, then run:
+#   bash scripts/install.sh
 
 set -euo pipefail
 

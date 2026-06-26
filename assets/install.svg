@@ -8,7 +8,7 @@
   <text x="390" y="22" fill="#8b949e" text-anchor="middle" font-size="12.5">tokless — install</text>
 
   <g xml:space="preserve">
-    <text x="22" y="66"><tspan fill="#3fb950">$ </tspan><tspan fill="#c9d1d9">curl -fsSL https://raw.githubusercontent.com/HoangP8/tokless/main/scripts/install.sh | bash</tspan></text>
+    <text x="22" y="66"><tspan fill="#3fb950">$ </tspan><tspan fill="#c9d1d9">curl -fsSL https://raw.githubusercontent.com/wallentx/tokless/main/scripts/install.sh | bash</tspan></text>
 
     <text x="22" y="112"><tspan fill="#58a6ff" font-weight="bold">? </tspan><tspan fill="#f0f6fc" font-weight="bold">Select agents to install tokless</tspan></text>
     <g font-size="11" font-weight="bold">

@@ -5,9 +5,9 @@
 
   One tool, no config — works the moment it lands.
 
-  [![version](https://img.shields.io/github/v/release/HoangP8/tokless?label=version)](https://github.com/HoangP8/tokless/releases)
-  [![platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-blue)](https://github.com/HoangP8/tokless)
-  [![license](https://img.shields.io/github/license/HoangP8/tokless)](https://github.com/HoangP8/tokless/blob/main/LICENSE)
+  [![version](https://img.shields.io/github/v/release/wallentx/tokless?label=version)](https://github.com/wallentx/tokless/releases)
+  [![platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-blue)](https://github.com/wallentx/tokless)
+  [![license](https://img.shields.io/github/license/wallentx/tokless)](https://github.com/wallentx/tokless/blob/main/LICENSE)
 
   <br />
   <br />
@@ -79,12 +79,12 @@ Each tool from official source. Each targets a different waste source — no ove
 
 macOS / Linux:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/HoangP8/tokless/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/wallentx/tokless/main/scripts/install.sh | bash
 ```
 
 Windows (PowerShell):
 ```powershell
-irm https://raw.githubusercontent.com/HoangP8/tokless/main/scripts/install.ps1 | iex
+irm https://raw.githubusercontent.com/wallentx/tokless/main/scripts/install.ps1 | iex
 ```
 
 ## Commands

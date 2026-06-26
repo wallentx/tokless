@@ -5,12 +5,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/HoangP8/tokless/internal/util"
 	"io"
 	"os"
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/wallentx/tokless/internal/util"
 )
 
 func rtkRewrite(cmdLine string) (string, bool) {

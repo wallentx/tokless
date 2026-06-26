@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/HoangP8/tokless/internal/core"
-	"github.com/HoangP8/tokless/internal/util"
+	"github.com/wallentx/tokless/internal/core"
+	"github.com/wallentx/tokless/internal/util"
 )
 
 // ConfigureClaudeMcp writes/updates an MCP stdio entry under ~/.claude.json.

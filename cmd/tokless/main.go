@@ -121,7 +121,6 @@ func run() int {
 		return commands.RunCodegraphIndexHook()
 	}
 
-
 	p := parseArgs(os.Args[1:])
 	if p.bools["verbose"] {
 		util.SetVerbose(true)

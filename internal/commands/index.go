@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/HoangP8/tokless/internal/core"
-	"github.com/HoangP8/tokless/internal/util"
+	"github.com/wallentx/tokless/internal/core"
+	"github.com/wallentx/tokless/internal/util"
 )
 
 var projectMarkers = []string{".git", "package.json", "go.mod", "Cargo.toml", "pyproject.toml", "pom.xml", "build.gradle", "tsconfig.json", "requirements.txt"}

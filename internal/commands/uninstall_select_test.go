@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/HoangP8/tokless/internal/core"
-	"github.com/HoangP8/tokless/internal/util"
+	"github.com/wallentx/tokless/internal/core"
+	"github.com/wallentx/tokless/internal/util"
 )
 
 // Non-interactive (no TTY in tests) + explicit flags: selective uninstall must

@@ -4,7 +4,7 @@
 
 
 $ErrorActionPreference = "Stop"
-$Owner = "HoangP8"
+$Owner = "wallentx"
 $Repo  = "tokless"
 
 $asset = "tokless-windows-x64.exe"

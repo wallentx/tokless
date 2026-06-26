@@ -7,9 +7,9 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/HoangP8/tokless/internal/agents"
-	"github.com/HoangP8/tokless/internal/core"
-	"github.com/HoangP8/tokless/internal/util"
+	"github.com/wallentx/tokless/internal/agents"
+	"github.com/wallentx/tokless/internal/core"
+	"github.com/wallentx/tokless/internal/util"
 )
 
 const rtkChecksumsURL = "https://github.com/rtk-ai/rtk/releases/latest/download/checksums.txt"

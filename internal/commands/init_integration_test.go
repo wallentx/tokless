@@ -8,11 +8,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/HoangP8/tokless/internal/agents"
-	"github.com/HoangP8/tokless/internal/commands"
-	"github.com/HoangP8/tokless/internal/core"
-	"github.com/HoangP8/tokless/internal/tools"
-	"github.com/HoangP8/tokless/internal/util"
+	"github.com/wallentx/tokless/internal/agents"
+	"github.com/wallentx/tokless/internal/commands"
+	"github.com/wallentx/tokless/internal/core"
+	"github.com/wallentx/tokless/internal/tools"
+	"github.com/wallentx/tokless/internal/util"
 )
 
 func TestMain(m *testing.M) {

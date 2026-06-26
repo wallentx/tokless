@@ -3,8 +3,8 @@ package commands
 import (
 	"os"
 
-	"github.com/HoangP8/tokless/internal/core"
-	"github.com/HoangP8/tokless/internal/util"
+	"github.com/wallentx/tokless/internal/core"
+	"github.com/wallentx/tokless/internal/util"
 )
 
 // InitOptions carries flags shared across init/update.

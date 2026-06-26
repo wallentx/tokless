@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/HoangP8/tokless/internal/util"
+	"github.com/wallentx/tokless/internal/util"
 )
 
 func TestCodexWiringPreservesApprovalPolicy(t *testing.T) {

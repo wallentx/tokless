@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/HoangP8/tokless/internal/util"
+	"github.com/wallentx/tokless/internal/util"
 )
 
 // pluginStrings returns the plugin[] entries of cfg as []string.

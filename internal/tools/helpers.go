@@ -4,7 +4,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/HoangP8/tokless/internal/util"
+	"github.com/wallentx/tokless/internal/util"
 )
 
 func writeIfMissing(path, content string) {

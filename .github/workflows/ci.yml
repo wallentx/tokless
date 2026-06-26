@@ -1,33 +1,57 @@
-name: ci
+name: CI
 
 # Runs on every push to main and every pull request.
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PAGER: cat
+  GIT_PAGER: cat
+  NO_COLOR: "1"
 
 jobs:
   check:
+    name: ${{ matrix.os }}
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v7
+      - name: Check out repository
+        uses: actions/checkout@v7
 
-      - uses: actions/setup-go@v6
+      - name: Set up Go
+        uses: actions/setup-go@v6
         with:
-          go-version: "1.22"
+          go-version-file: go.mod
+          cache: true
+
+      - name: Download modules
+        run: go mod download
 
       - name: Vet
         run: go vet ./...
 
-      - name: Test
-        run: go test ./...
-
       - name: Build
         run: go build ./...
+
+      - name: Test
+        run: go test ./...
 
       # Parse-validate the PowerShell installer on a real Windows runner —
       # it cannot be checked on the linux dev machine.
@@ -40,3 +64,20 @@ jobs:
           [System.Management.Automation.Language.Parser]::ParseFile("$PWD/scripts/install.ps1", [ref]$tokens, [ref]$errs) | Out-Null
           if ($errs) { $errs | ForEach-Object { Write-Error $_.Message }; exit 1 }
           Write-Output "install.ps1 parses OK"
+
+  hygiene:
+    name: ubuntu hygiene
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Run local CI gate
+        run: make ci

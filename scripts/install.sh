@@ -5,7 +5,7 @@
 
 set -euo pipefail
 
-OWNER="HoangP8"
+OWNER="wallentx"
 REPO="tokless"
 DEST="${HOME}/.local/bin"
 

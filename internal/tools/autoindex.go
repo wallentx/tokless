@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/HoangP8/tokless/internal/util"
+	"github.com/wallentx/tokless/internal/util"
 )
 
 // autoIndexCmd is the legacy SessionStart command prefix we clean up.

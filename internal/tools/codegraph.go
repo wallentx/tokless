@@ -6,9 +6,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/HoangP8/tokless/internal/agents"
-	"github.com/HoangP8/tokless/internal/core"
-	"github.com/HoangP8/tokless/internal/util"
+	"github.com/wallentx/tokless/internal/agents"
+	"github.com/wallentx/tokless/internal/core"
+	"github.com/wallentx/tokless/internal/util"
 )
 
 func codegraphEnsureInstalled(opts core.RunOpts) (bool, error) {

@@ -3,7 +3,7 @@ set -euo pipefail
 
 VERSION="${1:-$(git describe --tags --abbrev=0 2>/dev/null || echo 0.0.0)}"
 VERSION="${VERSION#v}"
-PKG="github.com/HoangP8/tokless/internal/util"
+PKG="github.com/wallentx/tokless/internal/util"
 OUT="dist/release"
 
 rm -rf "$OUT"

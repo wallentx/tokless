@@ -1,5 +1,7 @@
 node_modules/
 dist/
+.tools/
+/tokless
 bun.lockb
 .DS_Store
 *.log

@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/HoangP8/tokless/internal/core"
-	"github.com/HoangP8/tokless/internal/util"
+	"github.com/wallentx/tokless/internal/core"
+	"github.com/wallentx/tokless/internal/util"
 )
 
 // ConfigureCodexMcp upserts a [mcp_servers.<tool>] block in config.toml.

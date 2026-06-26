@@ -3,8 +3,8 @@ package commands
 import (
 	"strings"
 
-	"github.com/HoangP8/tokless/internal/core"
-	"github.com/HoangP8/tokless/internal/util"
+	"github.com/wallentx/tokless/internal/core"
+	"github.com/wallentx/tokless/internal/util"
 )
 
 func toolVersionNote(tool *core.ToolManifest) string {

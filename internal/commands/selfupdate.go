@@ -13,12 +13,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/HoangP8/tokless/internal/util"
+	"github.com/wallentx/tokless/internal/util"
 )
 
-const owner = "HoangP8"
+const owner = "wallentx"
 const repo = "tokless"
-const releaseLatestURL = "https://github.com/HoangP8/tokless/releases/latest"
+const releaseLatestURL = "https://github.com/wallentx/tokless/releases/latest"
 
 var selfUpdateHTTPClient = &http.Client{Timeout: 30 * time.Second}
 

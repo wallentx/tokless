@@ -2,6 +2,7 @@ package tools
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -9,6 +10,29 @@ import (
 	"github.com/HoangP8/tokless/internal/core"
 	"github.com/HoangP8/tokless/internal/util"
 )
+
+const allowMutableInstallersEnv = "TOKLESS_ALLOW_MUTABLE_INSTALLERS"
+
+var cavemanRun = util.Run
+
+func toolEnvTruthy(name string) bool {
+	v := strings.TrimSpace(strings.ToLower(os.Getenv(name)))
+	return v == "1" || v == "true" || v == "yes"
+}
+
+func cavemanMutableInstallersAllowed() bool {
+	return toolEnvTruthy(allowMutableInstallersEnv) || toolEnvTruthy("TOKLESS_ALLOW_MUTABLE_NPX")
+}
+
+func cavemanCommandNeedsMutableSourceOptIn(bin string, args []string) bool {
+	if bin == "npx" {
+		return true
+	}
+	if bin != "claude" || len(args) < 2 || args[0] != "plugin" {
+		return false
+	}
+	return args[1] == "marketplace" || args[1] == "install"
+}
 
 func cavemanExec(bin string, args []string, opts core.RunOpts, dryHint string, env ...string) (bool, error) {
 	if opts.DryRun {
@@ -18,7 +42,12 @@ func cavemanExec(bin string, args []string, opts core.RunOpts, dryHint string, e
 	if isTest() {
 		return true, nil
 	}
-	r := util.Run(bin, args, util.RunOptions{Capture: true, Env: env})
+	if cavemanCommandNeedsMutableSourceOptIn(bin, args) && !cavemanMutableInstallersAllowed() {
+		err := errors.New("caveman installer uses mutable remote sources; review them first, then set " + allowMutableInstallersEnv + "=1 to run")
+		util.L.Err(err.Error())
+		return false, err
+	}
+	r := cavemanRun(bin, args, util.RunOptions{Capture: true, Env: env})
 	if r.Code != 0 {
 		util.L.Err("caveman command failed: " + clip(r.Stderr))
 		return false, nil
@@ -319,7 +348,7 @@ func antigravityCavemanInstalled() bool {
 
 func geminiCavemanMd() string { return filepath.Join(util.Home(), ".gemini", "GEMINI.md") }
 
-func writeCavemanGeminiMd() { writeCavemanRuleset(geminiCavemanMd()) }
+func writeCavemanGeminiMd()  { writeCavemanRuleset(geminiCavemanMd()) }
 func removeCavemanGeminiMd() { removeCavemanRuleset(geminiCavemanMd()) }
 
 var cavemanSkillNames = []string{

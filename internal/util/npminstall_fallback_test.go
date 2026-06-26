@@ -51,11 +51,14 @@ func TestNpmUserPrefixInstall_Success(t *testing.T) {
 		if !strings.Contains(strings.Join(env, " "), "npm_config_prefix="+prefix) {
 			t.Fatalf("npm_config_prefix not set in env: %v", env)
 		}
+		if !strings.Contains(strings.Join(args, " "), "--registry "+defaultRegistryURL) {
+			t.Fatalf("trusted registry not forced in args: %v", args)
+		}
 		writeFakePkg(t, prefix, "context-mode", "1.2.3")
 		return ExecResult{Code: 0}
 	}
 
-	v, ok := npmUserPrefixInstall("context-mode", "context-mode@latest", "")
+	v, ok := npmUserPrefixInstall("context-mode", "context-mode@latest", "", defaultRegistryURL)
 	if !ok || v != "1.2.3" {
 		t.Fatalf("want 1.2.3/true, got %q/%v", v, ok)
 	}

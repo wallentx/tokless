@@ -12,13 +12,31 @@ import (
 )
 
 const defaultRegistryURL = "https://registry.npmjs.org/"
+const allowCustomNpmRegistryEnv = "TOKLESS_ALLOW_CUSTOM_NPM_REGISTRY"
 
-// npmRegistryBase returns the user's configured npm registry.
-func npmRegistryBase() string {
+func npmEnvTruthy(name string) bool {
+	v := strings.TrimSpace(strings.ToLower(os.Getenv(name)))
+	return v == "1" || v == "true" || v == "yes"
+}
+
+var npmConfigRegistry = func() string {
 	if Which("npm") != "" {
 		r := Run("npm", []string{"config", "get", "registry"}, RunOptions{Capture: true})
 		v := strings.TrimSpace(r.Stdout)
-		if r.Code == 0 && strings.HasPrefix(v, "http") {
+		if r.Code == 0 {
+			return v
+		}
+	}
+	return ""
+}
+
+// npmRegistryBase returns the registry trusted for package metadata and
+// dependency resolution. Custom registries are mutable source roots, so they are
+// ignored unless the user opts in explicitly.
+func npmRegistryBase() string {
+	if npmEnvTruthy(allowCustomNpmRegistryEnv) {
+		v := strings.TrimSpace(npmConfigRegistry())
+		if strings.HasPrefix(v, "https://") {
 			if !strings.HasSuffix(v, "/") {
 				v += "/"
 			}
@@ -85,12 +103,17 @@ var npmReadInstalled = func(pkg string) *string {
 }
 
 // buildNpmAttempts orders install attempts strongest-first.
-func buildNpmAttempts(pkg, resolvedVersion, tarball, cacheDir string) [][]string {
+func buildNpmAttempts(pkg, resolvedVersion, tarball, cacheDir, registry string) [][]string {
+	if registry == "" {
+		registry = defaultRegistryURL
+	}
 	token := pkg + "@latest"
 	if resolvedVersion != "" {
 		token = pkg + "@" + resolvedVersion
 	}
-	online := []string{"--prefer-online"}
+	registryArgs := []string{"--registry", registry}
+	online := append([]string{}, registryArgs...)
+	online = append(online, "--prefer-online")
 	if cacheDir != "" {
 		online = append(online, "--cache", cacheDir)
 	}
@@ -100,8 +123,7 @@ func buildNpmAttempts(pkg, resolvedVersion, tarball, cacheDir string) [][]string
 	if tarball != "" {
 		attempts = append(attempts, append([]string{"install", "-g", tarball}, online...))
 	}
-	attempts = append(attempts, []string{"install", "-g", token})
-	attempts = append(attempts, append([]string{"install", "-g", token, "--registry", defaultRegistryURL}, online...))
+	attempts = append(attempts, append([]string{"install", "-g", token}, registryArgs...))
 	return attempts
 }
 
@@ -135,7 +157,8 @@ func NpmGlobalInstall(pkg, spec string) (string, bool, error) {
 		defer cleanupDir(cacheDir)
 	}
 
-	for i, args := range buildNpmAttempts(pkg, resolvedVersion, tarball, cacheDir) {
+	registry := npmRegistryBase()
+	for i, args := range buildNpmAttempts(pkg, resolvedVersion, tarball, cacheDir, registry) {
 		r := npmRun(args)
 		if r.Code != 0 {
 			L.Debug("npm attempt " + strconv.Itoa(i+1) + " failed: " + firstNpmLine(r.Stderr, r.Stdout))
@@ -154,7 +177,7 @@ func NpmGlobalInstall(pkg, spec string) (string, bool, error) {
 	if resolvedVersion != "" {
 		token = pkg + "@" + resolvedVersion
 	}
-	if v, ok := npmUserPrefixInstall(pkg, token, cacheDir); ok {
+	if v, ok := npmUserPrefixInstall(pkg, token, cacheDir, registry); ok {
 		return v, true, nil
 	}
 	return "", false, nil
@@ -199,7 +222,7 @@ func npmPrefixInstalledVersion(prefix, pkg string) *string {
 	return &p.Version
 }
 
-func npmUserPrefixInstall(pkg, token, cacheDir string) (string, bool) {
+func npmUserPrefixInstall(pkg, token, cacheDir, registry string) (string, bool) {
 	prefix := userLocalNpmPrefix()
 	if prefix == "" {
 		return "", false
@@ -211,7 +234,10 @@ func npmUserPrefixInstall(pkg, token, cacheDir string) (string, bool) {
 	if EnsureDir(seed) != nil {
 		return "", false
 	}
-	args := []string{"install", "-g", token, "--no-audit", "--no-fund"}
+	if registry == "" {
+		registry = defaultRegistryURL
+	}
+	args := []string{"install", "-g", token, "--no-audit", "--no-fund", "--registry", registry}
 	if cacheDir != "" {
 		args = append(args, "--cache", cacheDir)
 	}

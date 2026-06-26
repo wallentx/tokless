@@ -5,11 +5,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/HoangP8/tokless/internal/agents"
-	"github.com/HoangP8/tokless/internal/commands"
-	"github.com/HoangP8/tokless/internal/core"
-	"github.com/HoangP8/tokless/internal/tools"
-	"github.com/HoangP8/tokless/internal/util"
+	"github.com/wallentx/tokless/internal/agents"
+	"github.com/wallentx/tokless/internal/commands"
+	"github.com/wallentx/tokless/internal/core"
+	"github.com/wallentx/tokless/internal/tools"
+	"github.com/wallentx/tokless/internal/util"
 )
 
 type parsedArgs struct {
@@ -55,7 +55,7 @@ func helpText() string {
 		"  --tools <list>      Limit to a subset: rtk,caveman,codegraph,context-mode\n" +
 		"  --dry-run           Show what would change without writing anything\n" +
 		"  --verbose           Show every step\n\n" +
-		util.C.Gray("Docs: https://github.com/HoangP8/tokless")
+		util.C.Gray("Docs: https://github.com/wallentx/tokless")
 }
 
 func parseList(raw string, ok bool, allowed []string) ([]string, error) {

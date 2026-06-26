@@ -26,6 +26,11 @@ echo "$TARGETS" | while read -r asset goos goarch; do
   echo "ok"
 done
 
+(
+  cd "$OUT"
+  sha256sum tokless-* > SHA256SUMS
+)
+
 echo
 echo "Built binaries for v${VERSION} in ${OUT}/:"
 ls -lh "$OUT"

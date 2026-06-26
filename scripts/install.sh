@@ -24,13 +24,45 @@ case "$(uname -m)" in
 esac
 asset="tokless-${os}-${arch}"
 url="https://github.com/${OWNER}/${REPO}/releases/latest/download/${asset}"
+sum_url="https://github.com/${OWNER}/${REPO}/releases/latest/download/SHA256SUMS"
+
+sha256_file() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | awk '{print $1}'
+    return
+  fi
+  if command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$1" | awk '{print $1}'
+    return
+  fi
+  return 127
+}
 
 # Download + install.
 mkdir -p "$DEST"
-tmp="$(mktemp)"; trap 'rm -f "$tmp"' EXIT
+tmp="$(mktemp)"
+sums="$(mktemp)"
+trap 'rm -f "$tmp" "$sums"' EXIT
 printf '\033[36m↓\033[0m Downloading %s…\n' "$asset"
 if ! curl -fSL --progress-bar -o "$tmp" "$url" || [ ! -s "$tmp" ]; then
   err "Download failed ($asset). See https://github.com/${OWNER}/${REPO}/releases"
+  exit 1
+fi
+printf '\033[36m↓\033[0m Downloading checksums…\n'
+if ! curl -fSL --progress-bar -o "$sums" "$sum_url" || [ ! -s "$sums" ]; then
+  err "Checksum download failed. Refusing to install unverified asset."
+  exit 1
+fi
+expected="$(awk -v a="$asset" '$2 == a { print $1; found=1 } END { if (!found) exit 1 }' "$sums")" || {
+  err "Checksum file does not list ${asset}. Refusing to install."
+  exit 1
+}
+actual="$(sha256_file "$tmp")" || {
+  err "sha256sum or shasum is required to verify ${asset}."
+  exit 1
+}
+if [ "$actual" != "$expected" ]; then
+  err "Checksum mismatch for ${asset}. Refusing to install."
   exit 1
 fi
 chmod +x "$tmp"

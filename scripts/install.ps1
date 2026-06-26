@@ -8,15 +8,41 @@ $Repo  = "tokless"
 
 $asset = "tokless-windows-x64.exe"
 $url   = "https://github.com/$Owner/$Repo/releases/latest/download/$asset"
+$sumsUrl = "https://github.com/$Owner/$Repo/releases/latest/download/SHA256SUMS"
 $destDir = Join-Path $env:LOCALAPPDATA "Programs\tokless"
 $dest = Join-Path $destDir "tokless.exe"
 
 New-Item -ItemType Directory -Force -Path $destDir | Out-Null
+$tmp = [System.IO.Path]::GetTempFileName()
+$sums = [System.IO.Path]::GetTempFileName()
 try {
-    Invoke-WebRequest -Uri $url -OutFile $dest -UseBasicParsing
+    Invoke-WebRequest -Uri $url -OutFile $tmp -UseBasicParsing
+    Invoke-WebRequest -Uri $sumsUrl -OutFile $sums -UseBasicParsing
+
+    $expected = $null
+    foreach ($line in Get-Content -Path $sums) {
+        $parts = $line -split "\s+"
+        if ($parts.Length -ge 2 -and $parts[1] -eq $asset) {
+            $expected = $parts[0].ToLowerInvariant()
+            break
+        }
+    }
+    if (-not $expected) {
+        throw "Checksum file does not list $asset"
+    }
+
+    $actual = (Get-FileHash -Path $tmp -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($actual -ne $expected) {
+        throw "Checksum mismatch for $asset"
+    }
+
+    Move-Item -Force -Path $tmp -Destination $dest
 } catch {
-    Write-Host "✖ Download failed ($asset). See https://github.com/$Owner/$Repo/releases" -ForegroundColor Red
+    Write-Host "✖ Verified download failed ($asset). See https://github.com/$Owner/$Repo/releases" -ForegroundColor Red
+    Write-Host "  $($_.Exception.Message)" -ForegroundColor Red
     exit 1
+} finally {
+    Remove-Item -Force -ErrorAction SilentlyContinue $tmp, $sums
 }
 
 $key = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey("Environment", $true)

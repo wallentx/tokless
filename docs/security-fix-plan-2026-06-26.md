@@ -2,6 +2,39 @@
 
 This note preserves the Codex Security scan results and the implementation plan so the work can continue safely after any context reset.
 
+## Completed Implementation
+
+Status after the completed fix set through `3400c6f`:
+
+- `main` remains untouched at upstream commit `769cd6d` and tracks `upstream/main`.
+- `dev` tracks `origin/dev` on the fork `wallentx/tokless`.
+- GitHub fork default branch is `dev`.
+- All ten reportable findings from the scan have code or process-control fixes committed on `dev`.
+
+Completed commits:
+
+1. `1446b72 docs: preserve security scan fix plan`
+2. `c4145bf fix(agents): restore owned permission boundaries`
+   - Covers `F-001`, `F-004`, `F-005`, and `F-007`.
+3. `0d8e03c fix(exec): trust MCP and hook binaries`
+   - Covers `F-002`, `F-003`, and `F-006`.
+4. `d6a2d1e fix(npm): require trusted installer sources`
+   - Covers `F-008`.
+5. `c816326 fix(release): verify update artifacts`
+   - Covers `F-009`.
+6. `6081336 fix(bootstrap): verify dependency downloads`
+   - Covers `F-010`.
+7. `3400c6f docs(install): avoid raw pipe examples`
+   - Follow-up documentation hardening for installer usage examples.
+
+Verification completed:
+
+- `env TMPDIR=/data/data/com.termux/files/usr/tmp go test ./...` passed.
+- `bash -n scripts/install.sh scripts/build-release.sh` passed.
+- Focused regression tests passed for agent permission boundaries, trusted binary resolution, npm registry and mutable installer gating, self-update checksum verification, and bootstrap checksum verification.
+- Final source audit found remaining raw RTK fallback installers only inside the explicit `TOKLESS_ALLOW_UNVERIFIED_BOOTSTRAP=1` opt-in path.
+- PowerShell runtime validation was not available in this Termux environment; `scripts/install.ps1` was reviewed statically.
+
 ## Repository State
 
 - Upstream repository: `HoangP8/tokless`

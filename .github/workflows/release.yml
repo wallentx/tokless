@@ -15,11 +15,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+      - uses: actions/setup-go@v6
         with:
           go-version: "1.22"
 
@@ -30,9 +30,24 @@ jobs:
         run: bash scripts/build-release.sh "${GITHUB_REF_NAME}"
 
       - name: Publish GitHub Release
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
-        with:
-          files: dist/release/*
-          generate_release_notes: true
-          fail_on_unmatched_files: true
-          prerelease: ${{ contains(github.ref_name, '-') }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          shopt -s nullglob
+          files=(dist/release/*)
+          if ((${#files[@]} == 0)); then
+            echo "No release assets found in dist/release" >&2
+            exit 1
+          fi
+
+          repo_args=(--repo "$GITHUB_REPOSITORY")
+          if gh release view "$GITHUB_REF_NAME" "${repo_args[@]}" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "${files[@]}" --clobber "${repo_args[@]}"
+          else
+            create_args=("${repo_args[@]}" --verify-tag --generate-notes)
+            if [[ "$GITHUB_REF_NAME" == *-* ]]; then
+              create_args+=(--prerelease)
+            fi
+            gh release create "$GITHUB_REF_NAME" "${create_args[@]}" "${files[@]}"
+          fi

@@ -67,7 +67,7 @@ tokless --agents claude,opencode,codex,antigravity  # all
 | Tool | What it does | Example |
 | ---- | ------------ | ------- |
 | [RTK](https://github.com/rtk-ai/rtk) | Trims noisy bash/tool output | `ls -la` 45 lines (~800 tok) → `rtk ls` 12 lines (~150 tok) |
-| [Caveman](https://github.com/JuliusBrussee/caveman) | Makes the agent answer in terse prose | 69-tok explanation → 19-tok answer (`useMemo`) |
+| [Caveman Plus](https://github.com/88plug/caveman-plus) | Makes the agent answer in terse caveman prose (~65% output savings) | 69-tok explanation → 19-tok answer (`useMemo`) |
 | [CodeGraph](https://github.com/colbymchenry/codegraph) | Query a code graph, skip whole-file reads | 1 `codegraph explore` call = 0 file reads on 25,874-file repo |
 | [Context-Mode](https://github.com/mksglu/context-mode) | Run heavy work in a sandbox, return only what matters | 700KB log → 3KB summary, raw bytes never enter context |
 

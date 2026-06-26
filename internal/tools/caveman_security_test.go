@@ -13,7 +13,7 @@ func TestCavemanExecBlocksMutableNpxByDefault(t *testing.T) {
 	t.Setenv(allowMutableInstallersEnv, "")
 	t.Setenv("TOKLESS_ALLOW_MUTABLE_NPX", "")
 
-	ran, err := cavemanExec("npx", []string{"-y", "skills", "add", "JuliusBrussee/caveman"}, core.RunOpts{}, "")
+	ran, err := cavemanExec("npx", []string{"-y", "skills", "add", "88plug/caveman-plus"}, core.RunOpts{}, "")
 	if err == nil {
 		t.Fatal("expected mutable npx installer to be blocked")
 	}
@@ -30,7 +30,7 @@ func TestCavemanExecBlocksClaudePluginInstallByDefault(t *testing.T) {
 	t.Setenv(allowMutableInstallersEnv, "")
 	t.Setenv("TOKLESS_ALLOW_MUTABLE_NPX", "")
 
-	ran, err := cavemanExec("claude", []string{"plugin", "marketplace", "add", "JuliusBrussee/caveman"}, core.RunOpts{}, "")
+	ran, err := cavemanExec("claude", []string{"plugin", "marketplace", "add", "88plug/caveman-plus"}, core.RunOpts{}, "")
 	if err == nil {
 		t.Fatal("expected mutable Claude plugin installer to be blocked")
 	}
@@ -58,7 +58,7 @@ func TestCavemanExecRunsMutableInstallerWithOptIn(t *testing.T) {
 		return util.ExecResult{Code: 0}
 	}
 
-	ran, err := cavemanExec("npx", []string{"-y", "skills", "add", "JuliusBrussee/caveman"}, core.RunOpts{}, "")
+	ran, err := cavemanExec("npx", []string{"-y", "skills", "add", "88plug/caveman-plus"}, core.RunOpts{}, "")
 	if err != nil || !ran {
 		t.Fatalf("expected opt-in command to run, ran=%v err=%v", ran, err)
 	}

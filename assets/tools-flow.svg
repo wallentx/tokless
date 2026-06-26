@@ -78,7 +78,7 @@
     <rect x="460" y="60" width="410" height="36" rx="10" ry="10" fill="#f0883e" fill-opacity="0.12"/>
     <rect x="460" y="86" width="410" height="10" fill="#f0883e" fill-opacity="0.12"/>
     <text x="480" y="84" fill="#f0883e"
-          font-family="ui-monospace, monospace" font-size="16" font-weight="700">CAVEMAN</text>
+          font-family="ui-monospace, monospace" font-size="16" font-weight="700">CAVEMAN PLUS</text>
     <text x="850" y="84" text-anchor="end" fill="#8b949e"
           font-family="ui-monospace, monospace" font-size="11">short, direct answers</text>
 

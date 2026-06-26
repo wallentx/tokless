@@ -68,7 +68,7 @@ func ensureOpencodeCommandsDir() {
 }
 
 func cavemanSkillsAddArgs(agent string) []string {
-	return []string{"-y", "skills", "add", "JuliusBrussee/caveman", "-a", agent, "-s", "*", "--yes", "-g"}
+	return []string{"-y", "skills", "add", "88plug/caveman-plus", "-a", agent, "-s", "*", "--yes", "-g"}
 }
 
 func cavemanSkillsRemoveArgs(agent string) []string {
@@ -388,9 +388,9 @@ func claudePluginListHasCaveman() bool {
 
 var caveman = &core.ToolManifest{
 	ID:           "caveman",
-	Label:        "Caveman",
-	Description:  "Skill that compresses agent prompts using primitive English.",
-	Homepage:     "https://github.com/JuliusBrussee/caveman",
+	Label:        "Caveman Plus",
+	Description:  "Skill that compresses agent prompts into caveman-style prose, saving ~65% output tokens.",
+	Homepage:     "https://github.com/88plug/caveman-plus",
 	InstallHint:  "Installed per-agent by Caveman's own CLI.",
 	NeedsGit:     true,
 	Channel:      core.ChannelGitHub,
@@ -406,11 +406,11 @@ var caveman = &core.ToolManifest{
 				return false, nil
 			}
 			ran, err := cavemanExec("claude",
-				[]string{"plugin", "marketplace", "add", "JuliusBrussee/caveman"},
-				opts, "claude plugin marketplace add JuliusBrussee/caveman && claude plugin install caveman@caveman")
+				[]string{"plugin", "marketplace", "add", "88plug/caveman-plus"},
+				opts, "claude plugin marketplace add 88plug/caveman-plus && claude plugin install caveman-plus@caveman-plus")
 			if ran && err == nil && !opts.DryRun && !isTest() {
 				ran, err = cavemanExec("claude",
-					[]string{"plugin", "install", "caveman@caveman"}, opts, "")
+					[]string{"plugin", "install", "caveman-plus@caveman-plus"}, opts, "")
 			}
 			if !opts.DryRun && !isTest() {
 				stampCavemanVersion()
@@ -421,11 +421,11 @@ var caveman = &core.ToolManifest{
 			if !opts.DryRun && !isTest() {
 				ensureOpencodeCommandsDir()
 			}
-			args := []string{"-y", "github:JuliusBrussee/caveman", "--", "--only", "opencode", "--no-mcp-shrink"}
+			args := []string{"-y", "github:88plug/caveman-plus", "--", "--only", "opencode", "--no-mcp-shrink"}
 			if opts.Upgrade {
 				args = append(args, "--force")
 			}
-			ran, err := cavemanExec("npx", args, opts, "npx -y github:JuliusBrussee/caveman -- --only opencode --no-mcp-shrink"+func() string {
+			ran, err := cavemanExec("npx", args, opts, "npx -y github:88plug/caveman-plus -- --only opencode --no-mcp-shrink"+func() string {
 				if opts.Upgrade {
 					return " --force"
 				}
@@ -494,12 +494,12 @@ var caveman = &core.ToolManifest{
 	UnwireFor: map[string]core.AgentFn{
 		"claude": func(opts core.RunOpts) (bool, error) {
 			if opts.DryRun {
-				util.L.Sub("[dry-run] would run: claude plugin uninstall caveman@caveman && claude mcp remove caveman-shrink")
+				util.L.Sub("[dry-run] would run: claude plugin uninstall caveman-plus@caveman-plus && claude mcp remove caveman-shrink")
 				return true, nil
 			}
 			if !isTest() {
 				if claudePluginListHasCaveman() {
-					if r := util.Run("claude", []string{"plugin", "uninstall", "caveman@caveman"}, util.RunOptions{Capture: true}); r.Code != 0 {
+					if r := util.Run("claude", []string{"plugin", "uninstall", "caveman-plus@caveman-plus"}, util.RunOptions{Capture: true}); r.Code != 0 {
 						util.L.Err("claude plugin uninstall failed: " + clip(r.Stderr))
 						return false, nil
 					}
